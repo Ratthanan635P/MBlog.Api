@@ -3,16 +3,21 @@ using MBlog.Domain.Entities;
 using MBlog.Domain.Helpers;
 using MBlog.Domain.Interfaces.Repositories;
 using MBlog.Domain.Interfaces.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using ServiceStack.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Linq;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace MBlog.Domain.Services
 {
@@ -43,7 +48,8 @@ namespace MBlog.Domain.Services
 				var result = _userRepository.UpdateUser(email, hashPassword, newSalt);
 				if (result == "Success")
 				{
-				 	return newpassword;
+					//senddata();
+					return result;// newpassword;
 				}
 				else
 				{
@@ -101,10 +107,18 @@ namespace MBlog.Domain.Services
 
 		public string RegisterUser(string email, string password)
 		{
-			string newSalt = RandomCode();
-			string newPassword = HashSHA256(password+ newSalt);
-			var result = _userRepository.AddUser(email, newPassword, newSalt);
-			return result;
+			var data = _userRepository.GetUserByEmail(email);
+			if (data != null)
+			{
+				return "Email is exist!";
+			}
+			else
+			{
+				string newSalt = RandomCode();
+				string newPassword = HashSHA256(password + newSalt);
+				var result = _userRepository.AddUser(email, newPassword, newSalt);
+				return result;
+			}
 			//throw new NotImplementedException();
 		}
 		private bool CheckUser(User user, string password)
@@ -159,6 +173,32 @@ namespace MBlog.Domain.Services
 			};
 			var token = tokenHandler.CreateToken(tokenDescriptor);
 			return  tokenHandler.WriteToken(token);			
+		}
+		private string createEmailBody(string userName, string message)
+		{
+			string body = string.Empty;
+			//using (StreamReader reader = new StreamReader(HttpContext.MapPath("/htmlTemplate.html")))
+			//{
+			//	body = reader.ReadToEnd();
+			//}
+			body = body.Replace("{UserName}", userName);
+			body = body.Replace("{message}", message);
+			return body;
+		}
+		private async void senddata()
+		{
+			var message = new MailMessage();
+			message.To.Add(new MailAddress("jenggig@gmail.com"));
+			message.From = new MailAddress("Amit Mohanty <amitmohanty@email.com>");
+			message.Bcc.Add(new MailAddress("Amit Mohanty <amitmohanty@email.com>"));
+			message.Subject = "subject";
+			message.Body = createEmailBody("testhfh","gghhhhhhdh");
+			message.IsBodyHtml = true;
+			using (var smtp = new SmtpClient())
+			{
+				await smtp.SendMailAsync(message);
+				await Task.FromResult(0);
+			}
 		}
 	}
 }

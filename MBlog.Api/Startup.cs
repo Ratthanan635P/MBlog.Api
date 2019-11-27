@@ -5,6 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using MBlog.Api.Helpers;
 using MBlog.Api.Services;
+using MBlog.DataAccess.Contexts;
+using MBlog.DataAccess.Repositoies;
+using MBlog.Domain.Interfaces.Repositories;
+using MBlog.Domain.Interfaces.Services;
 using MBlog.Domain.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -58,7 +62,10 @@ namespace MBlog.Api
 			});
 
 			// configure DI for application services
-			services.AddScoped<IUserDataServices, UserDataServices>();
+			//services.AddScoped<IUserDataServices, UserDataServices>();
+			services.AddDbContext<MBlogContext>();
+			services.AddScoped<IUserRepository, UserRepository>();
+			services.AddScoped<IUserService, UserService>();
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

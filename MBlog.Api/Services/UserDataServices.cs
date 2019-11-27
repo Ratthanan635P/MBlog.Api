@@ -1,4 +1,4 @@
-﻿using IdentityServer3.Core.Models;
+﻿
 using MBlog.Api.Entities;
 using MBlog.Api.Helpers;
 using Microsoft.Extensions.Options;
