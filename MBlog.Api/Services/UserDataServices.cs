@@ -1,4 +1,5 @@
-﻿using MBlog.Api.Entities;
+﻿using IdentityServer3.Core.Models;
+using MBlog.Api.Entities;
 using MBlog.Api.Helpers;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -54,10 +55,36 @@ namespace MBlog.Api.Services
 			};
 			var token = tokenHandler.CreateToken(tokenDescriptor);
 			user.Token = tokenHandler.WriteToken(token);
-
+			
 			return user.WithoutPassword();
 		}
+	//	public RefreshToken GenerateRefreshToken(User user)
+	//	{
+	//		// Create the refresh token
+	//		RefreshToken refreshToken = new RefreshToken()
+	//		{
+	//			Token = GenerateRefreshToken(),
+	//			Expiration = DateTime.UtcNow.AddMinutes(35) // Make this configurable
+	//		};
 
+	//// Add it to the list of of refresh tokens for the user
+	//		user.RefreshTokens.Add(refreshToken);
+
+	//		// Update the user along with the new refresh token
+	//		UserRepository.Update(user);
+
+	//		return refreshToken;
+	//	}
+
+		//public string GenerateRefreshToken()
+		//{
+		//	var randomNumber = new byte[32];
+		//	using (var rng = RandomNumberGenerator.Create())
+		//	{
+		//		rng.GetBytes(randomNumber);
+		//		return Convert.ToBase64String(randomNumber);
+		//	}
+		//}
 		public IEnumerable<UserData> GetAll()
 		{
 			return _users.WithoutPasswords();
