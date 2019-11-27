@@ -1,61 +1,164 @@
 ﻿using MBlog.Domain.Dtos;
 using MBlog.Domain.Entities;
+using MBlog.Domain.Helpers;
+using MBlog.Domain.Interfaces.Repositories;
 using MBlog.Domain.Interfaces.Services;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using ServiceStack.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace MBlog.Domain.Services
 {
 	public class UserService : IUserService
 	{
-		//// users hardcoded for simplicity, store in a db with hashed passwords in production applications
-		//private List<UserData> _users = new List<UserData>
-		//{
-		//	new UserData { Id = 1, UserName = "Test", Salt = "User", Password = "test" }
-		//};
-
+		private readonly IUserRepository _userRepository;
+		private static Random random = new Random();
 		//private readonly AppSettings _appSettings;
 
-		//public UserService(IOptions<AppSettings> appSettings)
+		//public UserDataServices(IOptions<AppSettings> appSettings)
 		//{
 		//	_appSettings = appSettings.Value;
 		//}
+		public UserService(IUserRepository userRepository)
+		{
+			_userRepository = userRepository;
+			//_appSettings = appSettings.Value;
+		}
+		public string ForgotPassword(string email)
+		{
+			//string status = "";
+			var user = _userRepository.GetUserByEmail(email);
+			if (user != null)
+			{
+				string newpassword = RandomPassword();
+				string newSalt = RandomCode();
+				string hashPassword = HashSHA256(newpassword + newSalt);
+				var result = _userRepository.UpdateUser(email, hashPassword, newSalt);
+				if (result == "Success")
+				{
+				 	return newpassword;
+				}
+				else
+				{
+					return "Update password fail";
+				}
+			}
+			else
+			{
+				return "No AccountEmail";
+			}
 
-		//public User Authenticate(string username, string password)
-		//{
-		//	var user = _users.SingleOrDefault(x => x.UserName == username && x.Password == password);
 
-		//	// return null if user not found
-		//	if (user == null)
-		//		return null;
+		}
 
-		//	// authentication successful so generate jwt token
-		//	var tokenHandler = new JwtSecurityTokenHandler();
-		//	var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-		//	var tokenDescriptor = new SecurityTokenDescriptor
-		//	{
-		//		Subject = new ClaimsIdentity(new Claim[]
-		//		{
-		//			new Claim(ClaimTypes.Name, user.Id.ToString())
-		//		}),
-		//		Expires = DateTime.UtcNow.AddDays(7),
-		//		SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-		//	};
-		//	var token = tokenHandler.CreateToken(tokenDescriptor);
-		//	user.AccessToken = tokenHandler.WriteToken(token);
+		public UserDto LogInUser(string email, string password)
+		{
+			string status="";
+			UserDto User = new UserDto();
+			var result = _userRepository.GetUserByEmail(email);
+			if (result != null)
+			{
+				if (result.ActiveStatus == Enums.Status.InActive)
+				{
+					if (CheckUser(result, password))
+					{
+						status = "PASS";
+					}
+					else
+					{
+						status = "Password is wrong!";
+					}
+				}
+				else
+				{
+					status = "Account is Active!";
+				}
+			}
+			else
+			{
+				status = "No AccountEmail";
+			}
+			User.ErrorMessage = status;
+			User.Id = result.Id;
+			User.AccessToken = Authenticate(User.Id);
+			//	เช็ค user มีหรือไหม
+			//string AddUser(string email, string password, string salt);
+			////ดึง Salt โดย Username 
+			////string GetSaltByUser(string userName);
+			////Update For Forgotpassword
+			//string UpdateUser(string email, string password, string salt);
+			////ดึง Salt และ Password โดย Username เพื่อ Check
+			//User GetUserByEmail(string email);
+			return User;
+		}
 
-		//	return user.WithoutPassword();
-		//}
-
-		//public IEnumerable<User> GetAll()
-		//{
-		//	return _users.WithoutPasswords();
-		//}
+		public string RegisterUser(string email, string password)
+		{
+			string newSalt = RandomCode();
+			string newPassword = HashSHA256(password+ newSalt);
+			var result = _userRepository.AddUser(email, newPassword, newSalt);
+			return result;
+			//throw new NotImplementedException();
+		}
+		private bool CheckUser(User user, string password)
+		{
+			string currentPassword = HashSHA256(password + user.Salt);
+			return (user.Password == currentPassword) ? true : false;
+		}
+		private string HashSHA256(string psw)
+		{
+			SHA256 sHA256hash = SHA256.Create();
+			byte[] bytes = sHA256hash.ComputeHash(Encoding.UTF8.GetBytes(psw));
+			StringBuilder builder = new StringBuilder();
+			for (int i = 0; i < bytes.Length; i++)
+			{
+				builder.Append(bytes[i].ToString("x2"));
+			}
+			string hashPSW = builder.ToString();
+			return hashPSW;
+		}
+		public string RandomCode()
+		{
+			const string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+			return new string(Enumerable.Repeat(chars, random.Next(20, 25))
+			  .Select(s => s[random.Next(s.Length)]).ToArray());
+		}
+		public string RandomPassword()
+		{
+			const string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+			return new string(Enumerable.Repeat(chars, random.Next(8, 10))
+			  .Select(s => s[random.Next(s.Length)]).ToArray());
+		}
+		public bool UpdateUser(string email, string password)
+		{
+			string newSalt = RandomCode();
+			string hashPassword = HashSHA256(password + newSalt);
+			var result = _userRepository.UpdateUser(email, hashPassword, newSalt);
+			return (result == "Success") ? true : false;	
+		}
+		public string Authenticate(int id)
+		{
+			// authentication successful so generate jwt token
+			var tokenHandler = new JwtSecurityTokenHandler();
+			var key = Encoding.ASCII.GetBytes("JENG123456789101guhijoklsdfhgjklfsdgxfhcgj");
+			var tokenDescriptor = new SecurityTokenDescriptor
+			{
+				Subject = new ClaimsIdentity(new Claim[]
+				{
+					new Claim(ClaimTypes.Name, id.ToString())
+				}),
+				Expires = DateTime.UtcNow.AddDays(7),
+				SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+			};
+			var token = tokenHandler.CreateToken(tokenDescriptor);
+			return  tokenHandler.WriteToken(token);			
+		}
 	}
 }

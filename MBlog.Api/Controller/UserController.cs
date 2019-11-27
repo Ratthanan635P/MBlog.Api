@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MBlog.Api.Models;
 using MBlog.Api.Services;
+using MBlog.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,9 +16,9 @@ namespace MBlog.Api.Controller
 	[Route("[controller]")]
 	public class UserController : ControllerBase
 	{
-		private IUserDataServices _userService;
+		private IUserService _userService;
 
-		public UserController(IUserDataServices userService)
+		public UserController(IUserService userService)
 		{
 			_userService = userService;
 		}
@@ -26,20 +27,28 @@ namespace MBlog.Api.Controller
 		[HttpPost("authenticate")]
 		public IActionResult Authenticate([FromBody]AuthenticateModel model)
 		{
-			var user = _userService.Authenticate(model.Username, model.Password);
+			string status = "";
+			try
+			{
+				var user = _userService.LogInUser(model.Username, model.Password);				
+				if (user.ErrorMessage != "PASS")
+					return BadRequest(new { message = status });
 
-			if (user == null)
-				return BadRequest(new { message = "Username or password is incorrect" });
-
-			return Ok(user);
+				return Ok(user);
+			}
+			catch (Exception ex)
+			{
+				status = ex.Message;
+			}
+			return BadRequest(new { message = status });
 		}
 
-		[HttpGet]
-		public IActionResult GetAll()
-		{
-			var users = _userService.GetAll();
-			return Ok(users);
-		}
+		//[HttpGet]
+		//public IActionResult GetAll()
+		//{
+		//	var users = _userService.GetAll();
+		//	return Ok(users);
+		//}
 	}
 
 }

@@ -7,7 +7,9 @@ namespace MBlog.Domain.Interfaces.Services
 {
 	 public interface IUserService
 	{
-		//UserData Authenticate(string username, string password);
-		//IEnumerable<UserData> GetAll();
+		UserDto LogInUser(string email, string password);
+		bool UpdateUser(string email, string password);
+		string ForgotPassword(string email);
+		string RegisterUser(string email, string password);
 	}
 }

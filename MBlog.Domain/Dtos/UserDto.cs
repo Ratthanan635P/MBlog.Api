@@ -7,11 +7,7 @@ namespace MBlog.Domain.Dtos
 	public class UserDto
 	{
 		public int Id { get; set; }
-		public string UserName { get; set; }
-		public string Password { get; set; }
-		public string Salt { get; set; }
 		public string ErrorMessage { get; set; }
-		//public string RefeshToken { get; set; }
-		//public string AccessToken { get; set; }
+		public string AccessToken { get; set; }
 	}
 }

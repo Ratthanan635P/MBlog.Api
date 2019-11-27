@@ -4,7 +4,7 @@ using System.Text;
 
 namespace MBlog.Domain.Dtos
 {
-	public class TokenAccess
+	public class AccessTokenDto
 	{
 		public string RefeshToken { get; set; }
 		public string AccessToken { get; set; }
