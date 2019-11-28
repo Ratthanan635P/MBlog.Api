@@ -1,6 +1,7 @@
 ﻿
 using MBlog.Api.Entities;
 using MBlog.Api.Helpers;
+using MBlog.Domain.Helpers;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;

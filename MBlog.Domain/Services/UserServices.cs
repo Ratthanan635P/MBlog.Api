@@ -1,4 +1,5 @@
-﻿using MBlog.Domain.Dtos;
+﻿
+using MBlog.Domain.Dtos;
 using MBlog.Domain.Entities;
 using MBlog.Domain.Helpers;
 using MBlog.Domain.Interfaces.Repositories;
@@ -6,7 +7,7 @@ using MBlog.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using ServiceStack.Configuration;
+
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -25,16 +26,16 @@ namespace MBlog.Domain.Services
 	{
 		private readonly IUserRepository _userRepository;
 		private static Random random = new Random();
-		//private readonly AppSettings _appSettings;
+		private readonly AppSettings _appSettings;
 
 		//public UserDataServices(IOptions<AppSettings> appSettings)
 		//{
 		//	_appSettings = appSettings.Value;
 		//}
-		public UserService(IUserRepository userRepository)
+		public UserService(IUserRepository userRepository, IOptions<AppSettings> appSettings)
 		{
 			_userRepository = userRepository;
-			//_appSettings = appSettings.Value;
+			_appSettings = appSettings.Value;
 		}
 		public string ForgotPassword(string email)
 		{
@@ -63,7 +64,7 @@ namespace MBlog.Domain.Services
 
 
 		}
-
+			
 		public UserDto LogInUser(string email, string password)
 		{
 			string status="";
