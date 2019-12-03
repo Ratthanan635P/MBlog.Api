@@ -13,5 +13,6 @@ namespace MBlog.Domain.Entities
 		public string RefeshToken { get; set; }
 		public string AccessToken { get; set; }
 		public Enums.Status ActiveStatus { get; set; }
+		public Enums.Roles Role { get; set; }
 	}
 }

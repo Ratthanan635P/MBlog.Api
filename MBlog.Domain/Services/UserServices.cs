@@ -28,10 +28,6 @@ namespace MBlog.Domain.Services
 		private static Random random = new Random();
 		private readonly AppSettings _appSettings;
 
-		//public UserDataServices(IOptions<AppSettings> appSettings)
-		//{
-		//	_appSettings = appSettings.Value;
-		//}
 		public UserService(IUserRepository userRepository, IOptions<AppSettings> appSettings)
 		{
 			_userRepository = userRepository;
@@ -94,7 +90,8 @@ namespace MBlog.Domain.Services
 			}
 			User.ErrorMessage = status;
 			User.Id = result.Id;
-			User.AccessToken = Authenticate(User.Id);
+			User.AccessToken = Authenticate(result);
+
 			//	เช็ค user มีหรือไหม
 			//string AddUser(string email, string password, string salt);
 			////ดึง Salt โดย Username 
@@ -158,7 +155,7 @@ namespace MBlog.Domain.Services
 			var result = _userRepository.UpdateUser(email, hashPassword, newSalt);
 			return (result == "Success") ? true : false;	
 		}
-		public string Authenticate(int id)
+		public string Authenticate(User user)
 		{
 			// authentication successful so generate jwt token
 			var tokenHandler = new JwtSecurityTokenHandler();
@@ -167,7 +164,8 @@ namespace MBlog.Domain.Services
 			{
 				Subject = new ClaimsIdentity(new Claim[]
 				{
-					new Claim(ClaimTypes.Name, id.ToString())
+					new Claim(ClaimTypes.Name, user.Id.ToString()),
+					new Claim(ClaimTypes.Role, user.Role.ToString())
 				}),
 				Expires = DateTime.UtcNow.AddDays(7),
 				SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -200,6 +198,19 @@ namespace MBlog.Domain.Services
 				await smtp.SendMailAsync(message);
 				await Task.FromResult(0);
 			}
+		}
+		public UserDto GetDataUser(string email)
+		{
+			var user = _userRepository.GetUserByEmail(email);
+			if (user == null)
+			{
+				return null;
+             }
+			UserDto userDto = new UserDto()
+			{ 
+				Id =user.Id,
+            };
+			return userDto;
 		}
 	}
 }

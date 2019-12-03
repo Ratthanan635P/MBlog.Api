@@ -1,4 +1,5 @@
 ﻿using MBlog.Domain.Entities;
+using MBlog.Domain.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -16,6 +17,8 @@ namespace MBlog.DataAccess.Configuretions
 			builder.Property(x => x.Salt).HasMaxLength(100);
 			builder.Property(x => x.RefeshToken).HasMaxLength(100);
 			builder.Property(x => x.AccessToken).HasMaxLength(100);
+			builder.Property(x => x.Role).HasConversion<string>().HasDefaultValue(Enums.Roles.User);
+
 		}
 	}
 }

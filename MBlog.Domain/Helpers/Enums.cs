@@ -11,5 +11,10 @@ namespace MBlog.Domain.Helpers
 			Active = 1,
 			InActive = 2,
 		}
+		public enum Roles
+		{
+			Admin = 1,
+			User = 2,
+		}
 	}
 }

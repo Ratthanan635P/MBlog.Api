@@ -11,6 +11,7 @@ namespace MBlog.Domain.Interfaces.Services
 		bool UpdateUser(string email, string password);
 		string ForgotPassword(string email);
 		string RegisterUser(string email, string password);
-		
+		UserDto GetDataUser(string email);
+
 	}
 }

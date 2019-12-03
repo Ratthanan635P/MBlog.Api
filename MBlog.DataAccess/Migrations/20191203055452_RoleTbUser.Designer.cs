@@ -4,14 +4,16 @@ using MBlog.DataAccess.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace MBlog.DataAccess.Migrations
 {
     [DbContext(typeof(MBlogContext))]
-    partial class MBlogContextModelSnapshot : ModelSnapshot
+    [Migration("20191203055452_RoleTbUser")]
+    partial class RoleTbUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
